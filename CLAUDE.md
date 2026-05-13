@@ -37,7 +37,34 @@ uv run pytest tests/test_dscode_launch.py -v
 
 # Live use against our local dscode
 echo "hi" | claude-tap --tap-client dscode --tap-no-open -- -p
+
+# Install the CLI globally from this checkout
+uv tool install --force .
 ```
+
+## Daily-use wrapper
+
+For day-to-day monitoring of dscode, use the `dscode-tap` wrapper at
+`~/Opensource/scripts/dscode-tap` (on PATH). It pins these defaults:
+
+- `--tap-client dscode`
+- `--tap-output-dir ~/.claude-tap/traces` (hidden tool-home pattern; not in
+  any sync path)
+- `--tap-max-traces 200` (auto-prunes older sessions)
+- `--tap-no-update-check` (we are on the fork; do not auto-pull upstream)
+
+Overrides via env: `DSCODE_TAP_DIR`, `DSCODE_TAP_MAX`.
+
+```bash
+dscode-tap                       # live REPL + browser viewer
+dscode-tap --tap-no-open         # live REPL, no auto-opened browser
+dscode-tap -- -p "hi"            # pipe mode through dscode
+dscode-tap dashboard             # browse historical traces
+dscode-tap export <trace.jsonl>  # convert a trace to markdown/json/html
+```
+
+See `~/Opensource/notes/DeepSeek-Code与claude-tap抓包配置.md` for the full
+operational guide (security notes, common pitfalls, multi-window setup).
 
 ## Where the dscode wiring lives
 
