@@ -159,6 +159,25 @@ CLIENT_CONFIGS: dict[str, ClientConfig] = {
         default_target="https://api2.cursor.sh",
         default_proxy_mode="forward",
     ),
+    "dscode": ClientConfig(
+        cmd="dscode",
+        label="DeepSeek Code (dscode)",
+        install_url="https://github.com/Oldcircle/deepseek-code",
+        # dscode reads DEEPSEEK_BASE_URL (not ANTHROPIC_BASE_URL); reverse-mode
+        # patches that env so the dscode → DeepSeek traffic flows through the
+        # tap proxy. The upstream target defaults to api.deepseek.com with the
+        # OpenAI-compatible /v1 path appended via base_url_suffix.
+        base_url_env="DEEPSEEK_BASE_URL",
+        base_url_suffix="/v1",
+        default_target="https://api.deepseek.com",
+        # When the target already ends in /v1 (the default api.deepseek.com
+        # case), keep the prefix so the upstream URL stays correct. For
+        # self-hosted deployments at e.g. http://localhost:8000/v1 the user
+        # can override --tap-target to strip /v1 by setting strip behavior
+        # via target choice (mirrors codex flow).
+        strip_path_prefix="/v1",
+        strip_path_prefix_unless_target_contains=("api.deepseek.com",),
+    ),
 }
 
 
@@ -708,6 +727,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "cursor cli (defaults to forward proxy mode):\n"
             '  claude-tap --tap-client cursor -- -p --trust --model auto "hello"\n'
             "  # Cursor readable messages are imported from local transcripts after exit\n"
+            "\n"
+            "dscode (DeepSeek Code fork — reverse proxy on DEEPSEEK_BASE_URL):\n"
+            "  # Defaults forward to api.deepseek.com with /v1 suffix\n"
+            "  claude-tap --tap-client dscode\n"
+            "  # Self-hosted DeepSeek endpoint\n"
+            "  claude-tap --tap-client dscode --tap-target http://localhost:8000\n"
             "\n"
             "proxy-only mode (connect from another terminal):\n"
             "  claude-tap --tap-no-launch --tap-port 8080\n"

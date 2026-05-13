@@ -27,6 +27,8 @@ Simplified Chinese version: [支持矩阵](support-matrix.zh.md).
 | Hermes Agent | Provider creds via `~/.hermes/` | Forward proxy (any HTTPS upstream) | n/a | HTTP/SSE | Unit-tested |
 | Hermes Agent | Custom OpenAI-compatible provider (`--tap-proxy-mode reverse`) | `https://api.openai.com` | `/v1` | HTTP/SSE | Unit-tested |
 | Cursor CLI | Cursor login (`cursor-agent login`) | Forward proxy to `https://api2.cursor.sh` | n/a | HTTPS/protobuf + local transcript import | Real E2E verified |
+| dscode (DeepSeek Code) | API Key (`DEEPSEEK_API_KEY`) | `https://api.deepseek.com` | none (when target contains `api.deepseek.com`) | HTTP/SSE Chat Completions | Real E2E verified |
+| dscode (DeepSeek Code) | API Key (`DEEPSEEK_API_KEY`) | Self-hosted (e.g. `http://localhost:8000`) | `/v1` | HTTP/SSE Chat Completions | Unit-tested |
 
 ## Default Proxy Mode by Client
 
@@ -41,6 +43,7 @@ Each client in `CLIENT_CONFIGS` declares a `default_proxy_mode` used when
 | `opencode` | `forward` | Multi-provider; forward proxy captures every upstream regardless of which env var the client honors |
 | `hermes` | `forward` | Multi-provider Python agent; `httpx` and `requests` honor `HTTPS_PROXY` natively, so forward proxy capture is the natural default |
 | `cursor` | `forward` | Cursor CLI has no base URL override; forward proxy captures network traffic and local transcripts provide readable turns |
+| `dscode` | `reverse` | Single provider; native `DEEPSEEK_BASE_URL` env var on the dscode (DeepSeek Code) CLI |
 
 Users can always override with `--tap-proxy-mode {reverse,forward}`.
 
