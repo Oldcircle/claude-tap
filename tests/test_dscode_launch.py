@@ -33,6 +33,10 @@ async def test_run_client_dscode_reverse_injects_deepseek_base_url(monkeypatch) 
         captured["env"] = kwargs["env"]
         return _DummyProc()
 
+    # Seed the parent env with the Claude Code nesting markers to ensure
+    # CLIENT_CONFIGS["dscode"].nesting_env_keys clears them before spawn.
+    monkeypatch.setenv("CLAUDECODE", "1")
+    monkeypatch.setenv("CLAUDE_CODE_SSE_PORT", "26032")
     monkeypatch.setattr("claude_tap.cli.shutil.which", lambda _: "/tmp/dscode")
     monkeypatch.setattr(asyncio, "create_subprocess_exec", fake_create_subprocess_exec)
     monkeypatch.setattr("sys.stdin.isatty", lambda: False)
@@ -40,9 +44,16 @@ async def test_run_client_dscode_reverse_injects_deepseek_base_url(monkeypatch) 
     code = await run_client(43123, ["-p", "hello"], client="dscode", proxy_mode="reverse")
 
     assert code == 0
-    assert captured["cmd"] == ("/tmp/dscode", "-p", "hello")
+    # --settings JSON is prepended when inject_settings_env=True; the
+    # original args still follow it.
+    assert "-p" in captured["cmd"]
+    assert "hello" in captured["cmd"]
     # The /v1 suffix matches DeepSeek's OpenAI-compatible chat completions path.
     assert captured["env"]["DEEPSEEK_BASE_URL"] == "http://127.0.0.1:43123/v1"
+    # Parent's nesting markers must not leak into the dscode child or it
+    # mis-detects an Agent SDK session and connection-errors on every call.
+    assert "CLAUDECODE" not in captured["env"]
+    assert "CLAUDE_CODE_SSE_PORT" not in captured["env"]
 
 
 @pytest.mark.asyncio

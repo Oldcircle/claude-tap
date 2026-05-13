@@ -177,6 +177,15 @@ CLIENT_CONFIGS: dict[str, ClientConfig] = {
         # via target choice (mirrors codex flow).
         strip_path_prefix="/v1",
         strip_path_prefix_unless_target_contains=("api.deepseek.com",),
+        # dscode is a Claude Code fork. If the parent shell already runs
+        # inside Claude Code (CLAUDECODE=1 + CLAUDE_CODE_SSE_PORT set), the
+        # nested child mis-detects an Agent SDK channel and produces opaque
+        # "Connection error" responses. Clear those vars so each dscode
+        # subprocess starts from a clean Claude Code environment.
+        nesting_env_keys=("CLAUDECODE", "CLAUDE_CODE_SSE_PORT"),
+        # Some Claude Code modes ignore the env var and instead read --settings
+        # JSON for base URL overrides. Inject the same payload Claude Code uses.
+        inject_settings_env=True,
     ),
 }
 
